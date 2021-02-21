@@ -24,10 +24,12 @@ void dfs(vector<vector<int> >& ground, vector<vector<bool> >& visited, int y, in
         dfs(ground, visited, ny, nx, dist+1, cut);
       else {
         if(!cut) {
-          ground[ny][nx] -= K;
-          if(ground[ny][nx] < ground[y][x])
-            dfs(ground, visited, ny, nx, dist+1, !cut);
-          ground[ny][nx] += K; 
+          for(int depth = 1; depth <= K; ++depth) {
+            ground[ny][nx] -= depth;
+            if(ground[ny][nx] < ground[y][x])
+              dfs(ground, visited, ny, nx, dist+1, !cut);
+            ground[ny][nx] += depth;
+          }
         }
       }
     }
