@@ -31,39 +31,25 @@
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 #include<iostream>
-#include <vector>
-#include <string>
-#include <cstring>
 #include <queue>
+#include <cstring>
 #include <algorithm>
+#include <cmath>
 
 using namespace std;
 
-const int MAX = 10, INF = 987654321;
+const int MAX = 11;
 
-int n, m, answer;
+int n, m;
 char board[MAX][MAX];
-// 0: red
-// 1: blue
-bool discovered[MAX][MAX][2];
+bool visited[MAX][MAX][MAX][MAX] = { false, };
 int ry, rx, by, bx;
-
-struct Ball {
-    int y, x;
-    int moveCnt;
-    string color;
-    Ball(int _y, int _x, int _moveCnt, string _color): y(_y), x(_x), moveCnt(_moveCnt), color(_color) {};
-};
 
 int dy[] = { -1, 1,  0, 0 };
 int dx[] = {  0, 0, -1, 1 };
-// first: red
-// second: blue
-typedef pair<Ball, Ball> PairBall;
 
 void initialize() {
-    answer = INF;
-    memset(discovered, false, sizeof(discovered));
+
 }
 
 void input() {
@@ -78,57 +64,67 @@ void input() {
         }
 }
 
-void solution() {
-    queue<PairBall> q;
-    q.push(make_pair(Ball(ry, rx, 0, "red"), Ball(by, bx, 0, "blue")));
-    discovered[ry][rx][0] = true;
-    discovered[by][bx][1] = true;
+int play() {
+    queue<pair<pair<int, int>, pair<int, int> > > q;
+    q.push(make_pair(make_pair(ry, rx), make_pair(by, bx)));
+    visited[ry][rx][by][bx] = true;
+    int ret = 0;
     while(!q.empty()) {
-        PairBall pb = q.front();
-        q.pop();
-        Ball red = pb.first;
-        Ball blue = pb.second;
-        // 빨간 공이 구멍 위치에 있으면 게임 성공
-        if(board[red.y][red.x] == '0') {
-            answer = min(answer, red.moveCnt);
-            continue;
+        int qsz = q.size();
+        while(qsz--) {
+            int redy = q.front().first.first;
+            int redx = q.front().first.second;
+            int bluey = q.front().second.first;
+            int bluex = q.front().second.second;
+            q.pop();
+            if(board[redy][redx] == 'O' && board[redy][redx] != board[bluey][bluex]) return ret;
+            for(int i = 0; i < 4; ++i) {
+                int redny = redy;
+                int rednx = redx;
+                int blueny = bluey;
+                int bluenx = bluex;
+                while(board[redny + dy[i]][rednx + dx[i]] != '#' && board[redny][rednx] != 'O') {
+                    redny += dy[i];
+                    rednx += dx[i];
+                }
+                while(board[blueny + dy[i]][bluenx + dx[i]] != '#' && board[blueny][bluenx] != 'O') {
+                    blueny += dy[i];
+                    bluenx += dx[i];
+                }
+                if(redny == blueny && rednx == bluenx) {
+                    if(board[blueny][bluenx] == 'O') continue;
+                    int rMove = abs(redny - redy) + abs(rednx - redx);
+                    int bMove = abs(blueny - bluey) + abs(bluenx - bluex);
+                    if(rMove > bMove) {
+                        redny -= dy[i];
+                        rednx -= dx[i];
+                    }
+                    else {
+                        blueny -= dy[i];
+                        bluenx -= dx[i];
+                    }
+                }
+                if(visited[redny][rednx][blueny][bluenx]) continue;
+                q.push(make_pair(make_pair(redny, rednx), make_pair(blueny, bluenx)));
+                visited[redny][rednx][blueny][bluenx] = true;
+            }
         }
-        // 파란 공이 구멍에 빠진 경우 게임 실패
-        if(board[blue.y][blue.x] == '0')
-            continue;
-        for(int i = 0; i < 4; ++i) {
-            int rny = red.y + dy[i];
-            int rnx = red.x + dx[i];
-            int bny = blue.y + dy[i];
-            int bnx = blue.x + dx[i];
-            // 빨간 공, 파란 공의 위치가 보드 밖이라면 고려하지 않는다.
-            if(rny < 0 || rny >= n || rnx < 0 || rnx >= m || bny < 0 || bny >= n || bnx < 0 || bnx >= m)
-                continue;
-            // 빨간 공, 파란 공의 다음 위치가 벽인 경우 고려하지 않는다.
-            if(board[rny][rnx] == '#' || board[bny][bnx] == '#')
-                continue;
-            // 이미 방문했던 좌표라면 고려하지 않는다.
-            if(discovered[rny][rnx][0] || discovered[bny][bnx])
-                continue;
-            q.push(make_pair(Ball(rny, rnx, red.moveCnt+1, "red"), Ball(bny, bny, blue.moveCnt+1, "blue")));
-            discovered[rny][rnx][0] = true;
-            discovered[bny][bnx][1] = true;
-        }
+        if(ret == 10)
+            return -1;
+        ret++;
     }
-    if(answer > 10) answer = -1;
+    return -1;
 }
 
 void solve() {
-    initialize();
     input();
-    solution();
-    cout << answer << endl;
+    cout << play() << endl;
 }
 
 int main(int argc, char** argv)
 {
-	int test_case;
-	int T;
+	// int test_case;
+	// int T;
 	/*
 	   아래의 freopen 함수는 input.txt 를 read only 형식으로 연 후,
 	   앞으로 표준 입력(키보드) 대신 input.txt 파일로부터 읽어오겠다는 의미의 코드입니다.
@@ -138,13 +134,13 @@ int main(int argc, char** argv)
 	   freopen 함수를 사용하기 위해서는 #include <cstdio>, 혹은 #include <stdio.h> 가 필요합니다.
 	   단, 채점을 위해 코드를 제출하실 때에는 반드시 freopen 함수를 지우거나 주석 처리 하셔야 합니다.
 	*/
-	freopen("input.txt", "r", stdin);
-	cin>>T;
+	// freopen("input.txt", "r", stdin);
+	// cin>>T;
 	/*
 	   여러 개의 테스트 케이스가 주어지므로, 각각을 처리합니다.
 	*/
-	for(test_case = 1; test_case <= T; ++test_case)
-	{
+	// for(test_case = 1; test_case <= T; ++test_case)
+	// {
 
 		/////////////////////////////////////////////////////////////////////////////////////////////
 		/*
@@ -153,6 +149,6 @@ int main(int argc, char** argv)
 		/////////////////////////////////////////////////////////////////////////////////////////////
         solve();
 
-	}
+	// }
 	return 0;//정상종료시 반드시 0을 리턴해야합니다.
 }
