@@ -6,7 +6,7 @@
 
 using namespace std;
 
-const int MAX = 25;
+const int MAX_N = 20;
 
 struct Customer {
 	int y, x;
@@ -21,9 +21,9 @@ struct Info {
 
 int n, m, fuel;
 int taxiY, taxiX;
-int M[MAX][MAX];
-bool visit[MAX][MAX];
-Customer customers[MAX*MAX];
+int M[MAX_N][MAX_N];
+bool visit[MAX_N][MAX_N];
+Customer customers[1+MAX_N*MAX_N];
 
 int dy[] = { -1,1,0,0 };
 int dx[] = { 0,0,-1,1 };
@@ -74,7 +74,7 @@ int findShortestCustomer() {
 		q.pop();
 		if(M[y][x] >= 1)
 			v.push_back({ y, x, distance, M[y][x] });
-		if(spareFuel == 0)
+		if(spareFuel <= 0)
 			continue;
 		for(int i = 0; i < 4; ++i) {
 			int ny = y + dy[i];
@@ -114,7 +114,7 @@ bool bfs(int a, int b, int c, int d, int num) {
 			return true;
 		}
 		if(spareFuel == 0)
-			return false;
+            continue;
 		for(int i = 0; i < 4; ++i) {
 			int ny = y + dy[i];
 			int nx = x + dx[i];
