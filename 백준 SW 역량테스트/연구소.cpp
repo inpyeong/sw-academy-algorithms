@@ -1,173 +1,112 @@
-/////////////////////////////////////////////////////////////////////////////////////////////
-// 기본 제공코드는 임의 수정해도 관계 없습니다. 단, 입출력 포맷 주의
-// 아래 표준 입출력 예제 필요시 참고하세요.
-// 표준 입력 예제
-// int a;
-// float b, c;
-// double d, e, f;
-// char g;
-// char var[256];
-// long long AB;
-// cin >> a;                            // int 변수 1개 입력받는 예제
-// cin >> b >> c;                       // float 변수 2개 입력받는 예제 
-// cin >> d >> e >> f;                  // double 변수 3개 입력받는 예제
-// cin >> g;                            // char 변수 1개 입력받는 예제
-// cin >> var;                          // 문자열 1개 입력받는 예제
-// cin >> AB;                           // long long 변수 1개 입력받는 예제
-/////////////////////////////////////////////////////////////////////////////////////////////
-// 표준 출력 예제
-// int a = 0;                            
-// float b = 1.0, c = 2.0;               
-// double d = 3.0, e = 0.0; f = 1.0;
-// char g = 'b';
-// char var[256] = "ABCDEFG";
-// long long AB = 12345678901234567L;
-// cout << a;                           // int 변수 1개 출력하는 예제
-// cout << b << " " << c;               // float 변수 2개 출력하는 예제
-// cout << d << " " << e << " " << f;   // double 변수 3개 출력하는 예제
-// cout << g;                           // char 변수 1개 출력하는 예제
-// cout << var;                         // 문자열 1개 출력하는 예제
-// cout << AB;                          // long long 변수 1개 출력하는 예제
-/////////////////////////////////////////////////////////////////////////////////////////////
-
-#include<iostream>
+#include <iostream>
 #include <vector>
-#include <queue>
 #include <cstring>
+#include <algorithm>
+#include <queue>
 
 using namespace std;
 
 const int MAX = 8;
 
-int n, m, space, answer;
-int board[MAX][MAX];
-int boardCopy[MAX][MAX];
-bool check[MAX * MAX];
-bool discovered[MAX][MAX];
+int N, M, Answer;
+int Board[MAX][MAX];
+int _Board[MAX][MAX];
+bool check[MAX*MAX];
+vector<pair<int, int> > Virus;
 
-int dy[] = { -1, 1,  0, 0 };
-int dx[] = {  0, 0, -1, 1 };
+bool Discovered[MAX][MAX];
+queue<pair<int, int> > Q;
 
-vector<pair<int, int> > Empty, virus;
+int D[4][2] = {{-1,0},{1,0},{0,-1},{0,1}};
 
 void input() {
-    cin >> n >> m;
-    for(int i = 0; i < n; ++i) 
-        for(int j = 0; j < m; ++j) {
-            cin >> board[i][j];
-            if(board[i][j] == 0) Empty.push_back(make_pair(i, j));
-            else if(board[i][j] == 2) virus.push_back(make_pair(i, j));
-        }
-    space = Empty.size();
+  cin >> N >> M;
+  for(int i = 0; i < N; ++i)
+    for(int j = 0; j < M; ++j) {
+      cin >> Board[i][j];
+      if(Board[i][j] == 2) 
+        Virus.push_back(make_pair(i, j));
+    }
+}
+
+void print_Board() {
+  cout << "=======" << endl;
+  for(int i = 0; i < N; ++i) {
+    for(int j = 0; j < M; ++j)
+      cout << _Board[i][j] << " ";
+    cout << endl;
+  }
 }
 
 void copyBoard() {
-    for(int i = 0; i < n; ++i)
-        for(int j = 0; j < m; ++j)
-            boardCopy[i][j] = board[i][j];
+  for(int i = 0; i < N; ++i)
+    for(int j = 0; j < M; ++j)
+      _Board[i][j] = Board[i][j];
 }
 
-void bfs(int a, int b) {
-    queue<pair<int, int> > q;
-    q.push(make_pair(a, b));
-    discovered[a][b] = true;
-    while(!q.empty()) {
-        int y = q.front().first;
-        int x = q.front().second;
-        q.pop();
-        for(int i = 0; i < 4; ++i) {
-            int ny = y + dy[i];
-            int nx = x + dx[i];
-            if(ny < 0 || ny >= n || nx < 0 || nx >= m) continue;
-            if(discovered[ny][nx] == false && boardCopy[ny][nx] == 0) {
-                boardCopy[ny][nx] = 2;
-                discovered[ny][nx] = true;
-                q.push(make_pair(ny, nx));
-            }
+int getNumOfZero() {
+  copyBoard();
+  for(int i = 0; i < N*M; ++i) 
+    if(check[i]) {
+      if(_Board[i/M][i%M]) return -1;
+      else _Board[i/M][i%M] = 1;
+    } 
+  memset(Discovered, false, sizeof(Discovered));
+  while(!Q.empty()) Q.pop();
+  for(int i = 0; i < Virus.size(); ++i) {
+    int srcY = Virus[i].first, srcX = Virus[i].second;
+    Discovered[srcY][srcX] = true;
+    Q.push(make_pair(srcY, srcX));
+    while(!Q.empty()) {
+      int y = Q.front().first;
+      int x = Q.front().second;
+      Q.pop();
+      _Board[y][x] = 2;
+      for(int j = 0; j < 4; ++j) {
+        int ny = y + D[j][0];
+        int nx = x + D[j][1];
+        if(ny >= 0 && nx >= 0 && ny < N && nx < M) {
+          if(!Discovered[ny][nx] && !_Board[ny][nx]) {
+            Discovered[ny][nx] = true;
+            Q.push(make_pair(ny, nx));
+          }
         }
+      }
     }
+  }
+  int ret = 0;
+  for(int i = 0; i < N; ++i)
+    for(int j = 0; j < M; ++j)
+      if(!_Board[i][j]) ret++;
+  return ret;
 }
 
-int countSafeArea() {
-    int ret = 0;
-    for(int i = 0; i < n; ++i)
-        for(int j = 0; j < m; ++j)
-            if(boardCopy[i][j] == 0) ret++;
-    return ret;
-}
-
-void spreadVirus() {
-    int cnt = 0;
-    copyBoard();
-    memset(discovered, false, sizeof(discovered));
-    for(int i = 0; i < space; ++i) {
-        if(cnt == 3) break;
-        if(check[i] == true) {
-            int y = Empty[i].first;
-            int x = Empty[i].second;
-            boardCopy[y][x] = 1;
-            cnt++;
-        }
+void dfs(int cnt, int idx) {
+  if(cnt == 3) {
+    int candi = getNumOfZero();
+    Answer = max(Answer, candi);
+    return;
+  }
+  for(int i = idx; i < N*M; ++i) {
+    if(!check[i]) {
+      check[i] = true;
+      dfs(cnt+1, i);
+      check[i] = false;
     }
-    for(int i = 0; i < virus.size(); ++i) {
-        int y = virus[i].first;
-        int x = virus[i].second;
-        bfs(y, x);
-    }
-    answer = max(answer, countSafeArea());
-}
-
-void makeWall(int idx, int cnt) {
-    if(cnt == 3) {
-        spreadVirus();
-        return;
-    }
-    for(int i = idx; i < space; ++i) {
-        if(check[i] == true) continue;
-        check[i] = true;
-        makeWall(i, cnt+1);
-        check[i] = false;
-    }
+  }
 }
 
 void solution() {
-    makeWall(0, 0);
-    cout << answer << endl;
+  dfs(0, 0);
+  cout << Answer << endl;
 }
 
 void solve() {
-    input();
-    solution();
+  input();
+  solution();
 }
 
-int main(int argc, char** argv)
-{
-	int test_case;
-	int T;
-	/*
-	   아래의 freopen 함수는 input.txt 를 read only 형식으로 연 후,
-	   앞으로 표준 입력(키보드) 대신 input.txt 파일로부터 읽어오겠다는 의미의 코드입니다.
-	   //여러분이 작성한 코드를 테스트 할 때, 편의를 위해서 input.txt에 입력을 저장한 후,
-	   freopen 함수를 이용하면 이후 cin 을 수행할 때 표준 입력 대신 파일로부터 입력을 받아올 수 있습니다.
-	   따라서 테스트를 수행할 때에는 아래 주석을 지우고 이 함수를 사용하셔도 좋습니다.
-	   freopen 함수를 사용하기 위해서는 #include <cstdio>, 혹은 #include <stdio.h> 가 필요합니다.
-	   단, 채점을 위해 코드를 제출하실 때에는 반드시 freopen 함수를 지우거나 주석 처리 하셔야 합니다.
-	*/
-	//freopen("input.txt", "r", stdin);
-	// cin>>T;
-	/*
-	   여러 개의 테스트 케이스가 주어지므로, 각각을 처리합니다.
-	*/
-	// for(test_case = 1; test_case <= T; ++test_case)
-	// {
-
-		/////////////////////////////////////////////////////////////////////////////////////////////
-		/*
-			 이 부분에 여러분의 알고리즘 구현이 들어갑니다.
-		 */
-		/////////////////////////////////////////////////////////////////////////////////////////////
-        solve();
-
-	// }
-	return 0;//정상종료시 반드시 0을 리턴해야합니다.
+int main() {
+  solve();
+  return 0;
 }
