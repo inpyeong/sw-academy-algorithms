@@ -1,66 +1,68 @@
-#include<iostream>
-#include <vector>
+#include <iostream>
 #include <algorithm>
 
 using namespace std;
 
-const int INF = 987654321;
+const int MAX_N = 11, MAX_H = 30, INF = 987654321;
 
-int n, m, h, answer;
-bool visited[11][30];
+int N, M, H, Answer;
+bool Visited[MAX_N][MAX_H];
 
 void input() {
-    answer = INF;
-    cin >> n >> m >> h;
-    for(int i = 0; i < m; ++i) {
-        int a, b;
-        cin >> a >> b;
-        visited[b][a] = true;
-    }
+  Answer = INF;
+  cin >> N >> M >> H;
+  for(int i = 0; i < M; ++i) {
+    int a, b;
+    cin >> a >> b;
+    Visited[b][a] = true;
+  }
 }
 
 bool ladderGame() {
-    for(int i = 1; i <= n; ++i) {
-        int currNum = i;
-        for(int j = 1; j <= h; ++j) {
-            if(visited[currNum][j]) currNum = currNum+1;
-            else if(visited[currNum-1][j]) currNum = currNum-1;
-        }
-        if(currNum != i) return false;
+  for(int i = 1; i <= N; ++i) {
+    int currNum = i;
+    for(int j = 1; j <= H; ++j) {
+      if(Visited[currNum][j]) currNum++;
+      else if(Visited[currNum-1][j]) currNum--;
     }
-    return true;
+    if(currNum != i) return false;
+  }
+  return true;
 }
 
 void selectLadder(int idx, int cnt) {
-    if(cnt >= 4) return;
-    if(ladderGame()) {
-        answer = min(answer, cnt);
-        return;
+  if(cnt >= 4) return;
+  if(ladderGame()) {
+    Answer = min(Answer, cnt);
+    return;
+  }
+  // Horizontal
+  for(int i = idx; i <= H; ++i) {
+    // Vertical
+    for(int j = 1; j < N; ++j) {
+      if(Visited[j][i]) continue;
+      if(Visited[j-1][i]) continue;
+      if(Visited[j+1][i]) continue;
+
+      Visited[j][i] = true;
+      selectLadder(i, cnt+1);
+      Visited[j][i] = false;
     }
-    for(int i = idx; i <= h; ++i) {
-        for(int j = 1; j < n; ++j) {
-            if(visited[j][i]) continue;
-            if(visited[j-1][i]) continue;
-            if(visited[j+1][i]) continue;
-            visited[j][i] = true;
-            selectLadder(i, cnt+1);
-            visited[j][i] = false;
-        }
-    }
+  }
 }
 
 void solution() {
-    selectLadder(1, 0);
-    if(answer == INF) cout << -1 << endl;
-    else cout << answer << endl;
+  selectLadder(1, 0);
+  if(Answer == INF) cout << -1 << endl;
+  else cout << Answer << endl;
 }
 
 void solve() {
-    input();
-    solution();
+  input();
+  solution();
 }
 
-int main(int argc, char** argv) {
+int main() {
   solve();
-	return 0;
+  return 0;
 }
