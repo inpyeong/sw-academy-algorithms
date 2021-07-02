@@ -5,58 +5,57 @@ using namespace std;
 
 const int MAX = 101;
 
-int n, x, y, d, g;
-int board[MAX][MAX];
-vector<int> dirInfo;
+int N, Answer;
+int Board[MAX][MAX];
+int X, Y, Dir, Gen;
+vector<int> DirInfo;
 
-int dy[] = { 0, -1,  0, 1 };
-int dx[] = { 1,  0, -1, 0 };
+int D[4][2] = {{0,1},{-1,0},{0,-1},{1,0}};
 
 void input() {
-    cin >> n;
+  cin >> N;
 }
 
-void makeDragonCurve() {
-    int sz = dirInfo.size();
-    for(int i = sz-1; i >= 0; --i) {
-        int nd = (dirInfo[i] + 1) % 4;
-        y = y + dy[nd];
-        x = x + dx[nd];
-        board[y][x] = 1;
-        dirInfo.push_back(nd);
-    }
+void drawDragonCurve() {
+  int sz = DirInfo.size();
+  for(int i = sz-1; i >= 0; --i) {
+    int nd = (DirInfo[i] + 1) % 4;
+    Y += D[nd][0];
+    X += D[nd][1];
+    Board[Y][X] = 1;
+    DirInfo.push_back(nd);
+  }
 }
 
 void countSquare() {
-    int answer = 0;
-    for(int i = 0; i < MAX; ++i) 
-        for(int j = 0; j < MAX; ++j) 
-            if(board[i][j] == 1 && board[i][j+1] == 1 && board[i+1][j] == 1 && board[i+1][j+1] == 1)
-                answer++;
-    cout << answer << endl;
+  for(int i = 0; i < MAX; ++i) 
+    for(int j = 0; j < MAX; ++j) 
+      if(Board[i][j] && Board[i][j+1] && Board[i+1][j] && Board[i+1][j+1])
+        Answer++;
 }
 
 void solution() {
-    for(int i = 0; i < n; ++i) {
-        cin >> x >> y >> d >> g;
-        dirInfo.clear();
-        board[y][x] = 1;
-        y = y + dy[d]; 
-        x = x + dx[d]; 
-        board[y][x] = 1;
-        dirInfo.push_back(d);
-        for(int j = 0; j < g; ++j)
-            makeDragonCurve();
-    }
-    countSquare();
+  for(int i = 0; i < N; ++i) {
+    cin >> X >> Y >> Dir >> Gen;
+    DirInfo.clear();
+    Board[Y][X] = 1;
+    Y += D[Dir][0];
+    X += D[Dir][1];
+    Board[Y][X] = 1;
+    DirInfo.push_back(Dir);
+    for(int j = 1; j <= Gen; ++j)
+      drawDragonCurve();
+  }
+  countSquare();
 }
 
 void solve() {
-    input();
-    solution();
+  input();
+  solution();
+  cout << Answer << endl;
 }
 
-int main(int argc, char** argv) {
-    solve();
-	return 0;
+int main() {
+  solve();
+  return 0;
 }
