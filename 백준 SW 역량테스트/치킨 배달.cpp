@@ -11,7 +11,6 @@ vector<pair<int, int> > Houses;
 vector<pair<int, int> > Chickens;
 bool Check[MAX_M];
 
-
 void input() {
   cin >> N >> M;
   for(int i = 1; i <= N; ++i)
