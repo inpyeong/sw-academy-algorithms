@@ -1,392 +1,483 @@
-#include <iostream>
-#include <cstring>
+#include <iostream> 
 #include <vector>
 
 using namespace std;
 
-int N;
-vector<pair<char, char> > V;
-vector<char> Cube[7];
+struct Cube {
+  char U[9], D[9], F[9], B[9], L[9], R[9];
+}Cube;
+
+int N, M;
+char Side, Dir;
+vector<char> Answer;
 
 void init() {
-    V.clear();
-    for(int i = 0; i < 7; ++i)
-        Cube[i].clear();
+  for(int i = 0; i < 9; ++i) {
+    Cube.U[i] = 'w';
+    Cube.D[i] = 'y';
+    Cube.F[i] = 'r';
+    Cube.B[i] = 'o';
+    Cube.L[i] = 'g';
+    Cube.R[i] = 'b';
+  }
 }
 
 void input() {
-    cin >> N;
-    string cmd;
-    for(int i = 0; i < N; ++i) {
-        cin >> cmd;
-        char a = cmd[0], b = cmd[1];
-        V.push_back(make_pair(a, b));
-    }
-    for(int i = 0; i < 9; ++i) {
-        // 위
-        Cube[1].push_back('w');
-        // 아래
-        Cube[2].push_back('y');
-        // 앞
-        Cube[3].push_back('r');
-        // 뒤
-        Cube[4].push_back('o');
-        // 왼
-        Cube[5].push_back('g');
-        // 오른
-        Cube[6].push_back('b');
-    }
+  cin >> N;
 }
 
-int selectPhase(char where) {
-    if(where == 'U') return 1;
-    else if(where == 'D') return 2;
-    else if(where == 'F') return 3;
-    else if(where == 'B') return 4;
-    else if(where == 'L') return 5;
-    else if(where == 'R') return 6;
+void rotateCube() {
+  char tmp, tmp2, tmp3;
+  char tmp4[9];
+  if(Side == 'U') {
+    if(Dir == '-') {
+      for(int i = 0; i < 9; ++i)
+        tmp4[i] = Cube.U[i];
+
+      Cube.U[0] = tmp4[2];
+      Cube.U[1] = tmp4[5];
+      Cube.U[2] = tmp4[8];
+      Cube.U[3] = tmp4[1];
+      Cube.U[4] = tmp4[4];
+      Cube.U[5] = tmp4[7];
+      Cube.U[6] = tmp4[0];
+      Cube.U[7] = tmp4[3];
+      Cube.U[8] = tmp4[6];
+
+      tmp = Cube.F[0];
+      tmp2 = Cube.F[1];
+      tmp3 = Cube.F[2];
+
+      Cube.F[0] = Cube.L[0];
+      Cube.F[1] = Cube.L[1];
+      Cube.F[2] = Cube.L[2];
+
+      Cube.L[0] = Cube.B[0];
+      Cube.L[1] = Cube.B[1];
+      Cube.L[2] = Cube.B[2];
+
+      Cube.B[0] = Cube.R[0];
+      Cube.B[1] = Cube.R[1];
+      Cube.B[2] = Cube.R[2];
+
+      Cube.R[0] = tmp;
+      Cube.R[1] = tmp2;
+      Cube.R[2] = tmp3;
+    }
+    else if(Dir == '+') {
+      for(int i = 0; i < 9; ++i)
+        tmp4[i] = Cube.U[i];
+
+      Cube.U[0] = tmp4[6];
+      Cube.U[1] = tmp4[3];
+      Cube.U[2] = tmp4[0];
+      Cube.U[3] = tmp4[7];
+      Cube.U[4] = tmp4[4];
+      Cube.U[5] = tmp4[1];
+      Cube.U[6] = tmp4[8];
+      Cube.U[7] = tmp4[5];
+      Cube.U[8] = tmp4[2];
+
+      tmp = Cube.F[0];
+      tmp2 = Cube.F[1];
+      tmp3 = Cube.F[2];
+
+      Cube.F[0] = Cube.R[0];
+      Cube.F[1] = Cube.R[1];
+      Cube.F[2] = Cube.R[2];
+
+      Cube.R[0] = Cube.B[0];
+      Cube.R[1] = Cube.B[1];
+      Cube.R[2] = Cube.B[2];
+
+      Cube.B[0] = Cube.L[0];
+      Cube.B[1] = Cube.L[1];
+      Cube.B[2] = Cube.L[2];
+
+      Cube.L[0] = tmp;
+      Cube.L[1] = tmp2;
+      Cube.L[2] = tmp3;
+    }
+  }
+  else if(Side == 'D') {
+    if(Dir == '-') {
+      for(int i = 0; i < 9; ++i)
+        tmp4[i] = Cube.D[i];
+
+      Cube.D[0] = tmp4[2];
+      Cube.D[1] = tmp4[5];
+      Cube.D[2] = tmp4[8];
+      Cube.D[3] = tmp4[1];
+      Cube.D[4] = tmp4[4];
+      Cube.D[5] = tmp4[7];
+      Cube.D[6] = tmp4[0];
+      Cube.D[7] = tmp4[3];
+      Cube.D[8] = tmp4[6];
+
+      tmp = Cube.F[6];
+      tmp2 = Cube.F[7];
+      tmp3 = Cube.F[8];
+
+      Cube.F[6] = Cube.R[6];
+      Cube.F[7] = Cube.R[7];
+      Cube.F[8] = Cube.R[8];
+
+      Cube.R[6] = Cube.B[6];
+      Cube.R[7] = Cube.B[7];
+      Cube.R[8] = Cube.B[8];
+
+      Cube.B[6] = Cube.L[6];
+      Cube.B[7] = Cube.L[7];
+      Cube.B[8] = Cube.L[8];
+
+      Cube.L[6] = tmp;
+      Cube.L[7] = tmp2;
+      Cube.L[8] = tmp3;
+    }
+    else if(Dir == '+') {
+      for(int i = 0; i < 9; ++i)
+        tmp4[i] = Cube.D[i];
+
+      Cube.D[0] = tmp4[6];
+      Cube.D[1] = tmp4[3];
+      Cube.D[2] = tmp4[0];
+      Cube.D[3] = tmp4[7];
+      Cube.D[4] = tmp4[4];
+      Cube.D[5] = tmp4[1];
+      Cube.D[6] = tmp4[8];
+      Cube.D[7] = tmp4[5];
+      Cube.D[8] = tmp4[2];
+
+      tmp = Cube.F[6];
+      tmp2 = Cube.F[7];
+      tmp3 = Cube.F[8];
+
+      Cube.F[6] = Cube.L[6];
+      Cube.F[7] = Cube.L[7];
+      Cube.F[8] = Cube.L[8];
+
+      Cube.L[6] = Cube.B[6];
+      Cube.L[7] = Cube.B[7];
+      Cube.L[8] = Cube.B[8];
+
+      Cube.B[6] = Cube.R[6];
+      Cube.B[7] = Cube.R[7];
+      Cube.B[8] = Cube.R[8];
+
+      Cube.R[6] = tmp;
+      Cube.R[7] = tmp2;
+      Cube.R[8] = tmp3;
+    }
+  }
+  else if(Side == 'F') {
+    if(Dir == '-') {
+      for(int i = 0; i < 9; ++i)
+        tmp4[i] = Cube.F[i];
+
+      Cube.F[0] = tmp4[2];
+      Cube.F[1] = tmp4[5];
+      Cube.F[2] = tmp4[8];
+      Cube.F[3] = tmp4[1];
+      Cube.F[4] = tmp4[4];
+      Cube.F[5] = tmp4[7];
+      Cube.F[6] = tmp4[0];
+      Cube.F[7] = tmp4[3];
+      Cube.F[8] = tmp4[6];
+
+      tmp = Cube.U[6];
+      tmp2 = Cube.U[7];
+      tmp3 = Cube.U[8];
+
+      Cube.U[6] = Cube.R[0];
+      Cube.U[7] = Cube.R[3];
+      Cube.U[8] = Cube.R[6];
+
+      Cube.R[0] = Cube.D[2];
+      Cube.R[3] = Cube.D[1];
+      Cube.R[6] = Cube.D[0];
+
+      Cube.D[0] = Cube.L[2];
+      Cube.D[1] = Cube.L[5];
+      Cube.D[2] = Cube.L[8];
+
+      Cube.L[2] = tmp3;
+      Cube.L[5] = tmp2;
+      Cube.L[8] = tmp;
+    }
+    else if(Dir == '+') {
+      for(int i = 0; i < 9; ++i)
+        tmp4[i] = Cube.F[i];
+
+      Cube.F[0] = tmp4[6];
+      Cube.F[1] = tmp4[3];
+      Cube.F[2] = tmp4[0];
+      Cube.F[3] = tmp4[7];
+      Cube.F[4] = tmp4[4];
+      Cube.F[5] = tmp4[1];
+      Cube.F[6] = tmp4[8];
+      Cube.F[7] = tmp4[5];
+      Cube.F[8] = tmp4[2];
+
+      tmp = Cube.U[6];
+      tmp2 = Cube.U[7];
+      tmp3 = Cube.U[8];
+
+      Cube.U[6] = Cube.L[8];
+      Cube.U[7] = Cube.L[5];
+      Cube.U[8] = Cube.L[2];
+
+      Cube.L[2] = Cube.D[0];
+      Cube.L[5] = Cube.D[1];
+      Cube.L[8] = Cube.D[2];
+
+      Cube.D[0] = Cube.R[6];
+      Cube.D[1] = Cube.R[3];
+      Cube.D[2] = Cube.R[0];
+
+      Cube.R[0] = tmp;
+      Cube.R[3] = tmp2;
+      Cube.R[6] = tmp3;
+    }
+  }
+  else if(Side == 'B') {
+    if(Dir == '-') {
+      for(int i = 0; i < 9; ++i)
+        tmp4[i] = Cube.B[i];
+
+      Cube.B[0] = tmp4[2];
+      Cube.B[1] = tmp4[5];
+      Cube.B[2] = tmp4[8];
+      Cube.B[3] = tmp4[1];
+      Cube.B[4] = tmp4[4];
+      Cube.B[5] = tmp4[7];
+      Cube.B[6] = tmp4[0];
+      Cube.B[7] = tmp4[3];
+      Cube.B[8] = tmp4[6];
+
+      tmp = Cube.U[2];
+      tmp2 = Cube.U[1];
+      tmp3 = Cube.U[0];
+
+      Cube.U[2] = Cube.L[0];
+      Cube.U[1] = Cube.L[3];
+      Cube.U[0] = Cube.L[6];
+
+      Cube.L[0] = Cube.D[6];
+      Cube.L[3] = Cube.D[7];
+      Cube.L[6] = Cube.D[8];
+
+      Cube.D[6] = Cube.R[8];
+      Cube.D[7] = Cube.R[5];
+      Cube.D[8] = Cube.R[2];
+
+      Cube.R[8] = tmp;
+      Cube.R[5] = tmp2;
+      Cube.R[2] = tmp3;
+    }
+    else if(Dir == '+') {
+      for(int i = 0; i < 9; ++i)
+        tmp4[i] = Cube.B[i];
+
+      Cube.B[0] = tmp4[6];
+      Cube.B[1] = tmp4[3];
+      Cube.B[2] = tmp4[0];
+      Cube.B[3] = tmp4[7];
+      Cube.B[4] = tmp4[4];
+      Cube.B[5] = tmp4[1];
+      Cube.B[6] = tmp4[8];
+      Cube.B[7] = tmp4[5];
+      Cube.B[8] = tmp4[2];
+
+      tmp = Cube.U[2];
+      tmp2 = Cube.U[1];
+      tmp3 = Cube.U[0];
+
+      Cube.U[2] = Cube.R[8];
+      Cube.U[1] = Cube.R[5];
+      Cube.U[0] = Cube.R[2];
+
+      Cube.R[2] = Cube.D[8];
+      Cube.R[5] = Cube.D[7];
+      Cube.R[8] = Cube.D[6];
+
+      Cube.D[8] = Cube.L[6];
+      Cube.D[7] = Cube.L[3];
+      Cube.D[6] = Cube.L[0];
+
+      Cube.L[0] = tmp;
+      Cube.L[3] = tmp2;
+      Cube.L[6] = tmp3;
+    }
+  }
+  else if(Side == 'L') {
+    if(Dir == '-') {
+      for(int i = 0; i < 9; ++i)
+        tmp4[i] = Cube.L[i];
+
+      Cube.L[0] = tmp4[2];
+      Cube.L[1] = tmp4[5];
+      Cube.L[2] = tmp4[8];
+      Cube.L[3] = tmp4[1];
+      Cube.L[4] = tmp4[4];
+      Cube.L[5] = tmp4[7];
+      Cube.L[6] = tmp4[0];
+      Cube.L[7] = tmp4[3];
+      Cube.L[8] = tmp4[6];
+
+      tmp = Cube.U[0];
+      tmp2 = Cube.U[3];
+      tmp3 = Cube.U[6];
+
+      Cube.U[0] = Cube.F[0];
+      Cube.U[3] = Cube.F[3];
+      Cube.U[6] = Cube.F[6];
+
+      Cube.F[0] = Cube.D[0];
+      Cube.F[3] = Cube.D[3];
+      Cube.F[6] = Cube.D[6];
+
+      Cube.D[0] = Cube.B[8];
+      Cube.D[3] = Cube.B[5];
+      Cube.D[6] = Cube.B[2];
+
+      Cube.B[8] = tmp;
+      Cube.B[5] = tmp2;
+      Cube.B[2] = tmp3;
+    }
+    else if(Dir == '+') {
+      for(int i = 0; i < 9; ++i)
+        tmp4[i] = Cube.L[i];
+
+      Cube.L[0] = tmp4[6];
+      Cube.L[1] = tmp4[3];
+      Cube.L[2] = tmp4[0];
+      Cube.L[3] = tmp4[7];
+      Cube.L[4] = tmp4[4];
+      Cube.L[5] = tmp4[1];
+      Cube.L[6] = tmp4[8];
+      Cube.L[7] = tmp4[5];
+      Cube.L[8] = tmp4[2];
+
+      tmp = Cube.U[0];
+      tmp2 = Cube.U[3];
+      tmp3 = Cube.U[6];
+
+      Cube.U[0] = Cube.B[8];
+      Cube.U[3] = Cube.B[5];
+      Cube.U[6] = Cube.B[2];
+
+      Cube.B[8] = Cube.D[0];
+      Cube.B[5] = Cube.D[3];
+      Cube.B[2] = Cube.D[6];
+
+      Cube.D[0] = Cube.F[0];
+      Cube.D[3] = Cube.F[3];
+      Cube.D[6] = Cube.F[6];
+
+      Cube.F[0] = tmp;
+      Cube.F[3] = tmp2;
+      Cube.F[6] = tmp3;
+    }
+  }
+  else if(Side == 'R') {
+    if(Dir == '-') {
+      for(int i = 0; i < 9; ++i)
+        tmp4[i] = Cube.R[i];
+
+      Cube.R[0] = tmp4[2];
+      Cube.R[1] = tmp4[5];
+      Cube.R[2] = tmp4[8];
+      Cube.R[3] = tmp4[1];
+      Cube.R[4] = tmp4[4];
+      Cube.R[5] = tmp4[7];
+      Cube.R[6] = tmp4[0];
+      Cube.R[7] = tmp4[3];
+      Cube.R[8] = tmp4[6];
+
+      tmp = Cube.U[8];
+      tmp2 = Cube.U[5];
+      tmp3 = Cube.U[2];
+
+      Cube.U[8] = Cube.B[0];
+      Cube.U[5] = Cube.B[3];
+      Cube.U[2] = Cube.B[6];
+
+      Cube.B[0] = Cube.D[8];
+      Cube.B[3] = Cube.D[5];
+      Cube.B[6] = Cube.D[2];
+
+      Cube.D[8] = Cube.F[8];
+      Cube.D[5] = Cube.F[5];
+      Cube.D[2] = Cube.F[2];
+
+      Cube.F[8] = tmp;
+      Cube.F[5] = tmp2;
+      Cube.F[2] = tmp3;
+    }
+    else if(Dir == '+') {
+      for(int i = 0; i < 9; ++i)
+        tmp4[i] = Cube.R[i];
+
+      Cube.R[0] = tmp4[6];
+      Cube.R[1] = tmp4[3];
+      Cube.R[2] = tmp4[0];
+      Cube.R[3] = tmp4[7];
+      Cube.R[4] = tmp4[4];
+      Cube.R[5] = tmp4[1];
+      Cube.R[6] = tmp4[8];
+      Cube.R[7] = tmp4[5];
+      Cube.R[8] = tmp4[2];
+
+      tmp = Cube.U[8];
+      tmp2 = Cube.U[5];
+      tmp3 = Cube.U[2];
+
+      Cube.U[8] = Cube.F[8];
+      Cube.U[5] = Cube.F[5];
+      Cube.U[2] = Cube.F[2];
+
+      Cube.F[8] = Cube.D[8];
+      Cube.F[5] = Cube.D[5];
+      Cube.F[2] = Cube.D[2];
+
+      Cube.D[2] = Cube.B[6];
+      Cube.D[5] = Cube.B[3];
+      Cube.D[8] = Cube.B[0];
+
+      Cube.B[0] = tmp;
+      Cube.B[3] = tmp2;
+      Cube.B[6] = tmp3;
+    }
+  }
 }
 
-void reSetting(char where, char dir) {
-    int phase = selectPhase(where);
-    if(dir == '+') {
-        int tmp = Cube[phase].at(0);
-        Cube[phase].at(0) = Cube[phase].at(6);
-        Cube[phase].at(6) = Cube[phase].at(8);
-        Cube[phase].at(8) = Cube[phase].at(2);
-        Cube[phase].at(2) = tmp;
-
-        int tmp2 = Cube[phase].at(1);
-        Cube[phase].at(1) = Cube[phase].at(3);
-        Cube[phase].at(3) = Cube[phase].at(7);
-        Cube[phase].at(7) = Cube[phase].at(5);
-        Cube[phase].at(5) = tmp2;
-    }
-    else if(dir == '-') {
-        int tmp = Cube[phase].at(0);
-        Cube[phase].at(0) = Cube[phase].at(2);
-        Cube[phase].at(2) = Cube[phase].at(8);
-        Cube[phase].at(8) = Cube[phase].at(6);
-        Cube[phase].at(6) = tmp;
-
-        int tmp2 = Cube[phase].at(1);
-        Cube[phase].at(1) = Cube[phase].at(5);
-        Cube[phase].at(5) = Cube[phase].at(7);
-        Cube[phase].at(7) = Cube[phase].at(3);
-        Cube[phase].at(3) = tmp2;
-    }
-}
-
-void rotateCube(char where, char dir) {
-    // 1 = 위 | 2 = 아래 | 3 = 앞 | 4 = 뒤 | 5 = 왼 | 6 = 오
-    if(where == 'U') {
-        if(dir == '+') {
-            char tmp, tmp2, tmp3;
-            tmp = Cube[6].at(0);
-            tmp2 = Cube[6].at(1);
-            tmp3 = Cube[6].at(2);
-
-            Cube[6].at(0) = Cube[4].at(0);
-            Cube[6].at(1) = Cube[4].at(1);
-            Cube[6].at(2) = Cube[4].at(2);
-
-            Cube[4].at(0) = Cube[5].at(0);
-            Cube[4].at(1) = Cube[5].at(1);
-            Cube[4].at(2) = Cube[5].at(2);
-
-            Cube[5].at(0) = Cube[3].at(0);
-            Cube[5].at(1) = Cube[3].at(1);
-            Cube[5].at(2) = Cube[3].at(2);
-
-            Cube[3].at(0) = tmp;
-            Cube[3].at(1) = tmp2;
-            Cube[3].at(2) = tmp3;
-        }
-        else {
-            char tmp, tmp2, tmp3;
-            tmp = Cube[6].at(0);
-            tmp2 = Cube[6].at(1);
-            tmp3 = Cube[6].at(2);
-
-            Cube[6].at(0) = Cube[3].at(0);
-            Cube[6].at(1) = Cube[3].at(1);
-            Cube[6].at(2) = Cube[3].at(2);
-
-            Cube[3].at(0) = Cube[5].at(0);
-            Cube[3].at(1) = Cube[5].at(1);
-            Cube[3].at(2) = Cube[5].at(2);
-
-            Cube[5].at(0) = Cube[4].at(0);
-            Cube[5].at(1) = Cube[4].at(1);
-            Cube[5].at(2) = Cube[4].at(2);
-
-            Cube[4].at(0) = tmp;
-            Cube[4].at(1) = tmp2;
-            Cube[4].at(2) = tmp3;
-        }
-    }
-    else if(where == 'D') {
-        if(dir == '+') {
-            char tmp, tmp2, tmp3;
-            tmp = Cube[3].at(6);
-            tmp2 = Cube[3].at(7);
-            tmp3 = Cube[3].at(8);
-
-            Cube[3].at(6) = Cube[5].at(6);
-            Cube[3].at(7) = Cube[5].at(7);
-            Cube[3].at(8) = Cube[5].at(8);
-
-            Cube[5].at(6) = Cube[4].at(6);
-            Cube[5].at(7) = Cube[4].at(7);
-            Cube[5].at(8) = Cube[4].at(8);
-
-            Cube[4].at(6) = Cube[6].at(6);
-            Cube[4].at(7) = Cube[6].at(7);
-            Cube[4].at(8) = Cube[6].at(8);
-
-            Cube[6].at(6) = tmp;
-            Cube[6].at(7) = tmp2;
-            Cube[6].at(8) = tmp3;
-        }
-        else {
-            char tmp, tmp2, tmp3;
-            tmp = Cube[3].at(6);
-            tmp2 = Cube[3].at(7);
-            tmp3 = Cube[3].at(8);
-
-            Cube[3].at(6) = Cube[6].at(6);
-            Cube[3].at(7) = Cube[6].at(7);
-            Cube[3].at(8) = Cube[6].at(8);
-
-            Cube[6].at(6) = Cube[4].at(6);
-            Cube[6].at(7) = Cube[4].at(7);
-            Cube[6].at(8) = Cube[4].at(8);
-
-            Cube[4].at(6) = Cube[5].at(6);
-            Cube[4].at(7) = Cube[5].at(7);
-            Cube[4].at(8) = Cube[5].at(8);
-
-            Cube[5].at(6) = tmp;
-            Cube[5].at(7) = tmp2;
-            Cube[5].at(8) = tmp3;
-        }
-    }
-    else if(where == 'F') {
-        if(dir == '+') {
-            char tmp, tmp2, tmp3;
-            tmp = Cube[1].at(6);
-            tmp2 = Cube[1].at(7);
-            tmp3 = Cube[1].at(8);
-
-            Cube[1].at(6) = Cube[5].at(8);
-            Cube[1].at(7) = Cube[5].at(5);
-            Cube[1].at(8) = Cube[5].at(2);
-
-            Cube[5].at(8) = Cube[2].at(2);
-            Cube[5].at(5) = Cube[2].at(1);
-            Cube[5].at(2) = Cube[2].at(0);
-
-            Cube[2].at(2) = Cube[6].at(0);
-            Cube[2].at(1) = Cube[6].at(3);
-            Cube[2].at(0) = Cube[6].at(6);
-
-            Cube[6].at(0) = tmp;
-            Cube[6].at(3) = tmp2;
-            Cube[6].at(6) = tmp3;
-        }
-        else {
-            char tmp, tmp2, tmp3;
-            tmp = Cube[1].at(6);
-            tmp2 = Cube[1].at(7);
-            tmp3 = Cube[1].at(8);
-
-            Cube[1].at(6) = Cube[6].at(0);
-            Cube[1].at(7) = Cube[6].at(3);
-            Cube[1].at(8) = Cube[6].at(6);
-
-            Cube[6].at(0) = Cube[2].at(2);
-            Cube[6].at(3) = Cube[2].at(1);
-            Cube[6].at(6) = Cube[2].at(0);
-
-            Cube[2].at(2) = Cube[5].at(8);
-            Cube[2].at(1) = Cube[5].at(5);
-            Cube[2].at(0) = Cube[5].at(2);
-
-            Cube[5].at(8) = tmp;
-            Cube[5].at(5) = tmp2;
-            Cube[5].at(2) = tmp3;
-        }
-    }
-    else if(where == 'B') {
-        if(dir == '+') {
-            char tmp, tmp2, tmp3;
-            tmp = Cube[1].at(0);
-            tmp2 = Cube[1].at(1);
-            tmp3 = Cube[1].at(2);
-
-            Cube[1].at(0) = Cube[6].at(2);
-            Cube[1].at(1) = Cube[6].at(5);
-            Cube[1].at(2) = Cube[6].at(8);
-
-            Cube[6].at(2) = Cube[2].at(8);
-            Cube[6].at(5) = Cube[2].at(7);
-            Cube[6].at(8) = Cube[2].at(6);
-
-            Cube[2].at(8) = Cube[5].at(6);
-            Cube[2].at(7) = Cube[5].at(3);
-            Cube[2].at(6) = Cube[5].at(0);
-
-            Cube[5].at(6) = tmp;
-            Cube[5].at(3) = tmp2;
-            Cube[5].at(0) = tmp3;
-        }
-        else {
-            char tmp, tmp2, tmp3;
-            tmp = Cube[1].at(0);
-            tmp2 = Cube[1].at(1);
-            tmp3 = Cube[1].at(2);
-
-            Cube[1].at(0) = Cube[5].at(6);
-            Cube[1].at(1) = Cube[5].at(3);
-            Cube[1].at(2) = Cube[5].at(0);
-
-            Cube[5].at(6) = Cube[2].at(8);
-            Cube[5].at(3) = Cube[2].at(7);
-            Cube[5].at(0) = Cube[2].at(6);
-
-            Cube[2].at(8) = Cube[6].at(2);
-            Cube[2].at(7) = Cube[6].at(5);
-            Cube[2].at(6) = Cube[6].at(8);
-
-            Cube[6].at(2) = tmp;
-            Cube[6].at(5) = tmp2;
-            Cube[6].at(8) = tmp3;
-        }
-    }
-    else if(where == 'L') {
-        if(dir == '+') {
-            char tmp, tmp2, tmp3;
-            tmp = Cube[3].at(0);
-            tmp2 = Cube[3].at(3);
-            tmp3 = Cube[3].at(6);
-
-            Cube[3].at(0) = Cube[1].at(0);
-            Cube[3].at(3) = Cube[1].at(3);
-            Cube[3].at(6) = Cube[1].at(6);
-
-            Cube[1].at(0) = Cube[4].at(8);
-            Cube[1].at(3) = Cube[4].at(5);
-            Cube[1].at(6) = Cube[4].at(2);
-
-            Cube[4].at(8) = Cube[2].at(0);
-            Cube[4].at(5) = Cube[2].at(3);
-            Cube[4].at(2) = Cube[2].at(6);
-
-            Cube[2].at(0) = tmp;
-            Cube[2].at(3) = tmp2;
-            Cube[2].at(6) = tmp3;
-        }
-        else {
-            char tmp, tmp2, tmp3;
-            tmp = Cube[3].at(0);
-            tmp2 = Cube[3].at(3);
-            tmp3 = Cube[3].at(6);
-
-            Cube[3].at(0) = Cube[2].at(0);
-            Cube[3].at(3) = Cube[2].at(3);
-            Cube[3].at(6) = Cube[2].at(6);
-
-            Cube[2].at(0) = Cube[4].at(8);
-            Cube[2].at(3) = Cube[4].at(5);
-            Cube[2].at(6) = Cube[4].at(2);
-
-            Cube[4].at(8) = Cube[1].at(0);
-            Cube[4].at(5) = Cube[1].at(3);
-            Cube[4].at(2) = Cube[1].at(6);
-
-            Cube[1].at(0) = tmp;
-            Cube[1].at(3) = tmp2;
-            Cube[1].at(6) = tmp3;
-        }
-    }
-    else if(where == 'R') {
-        if(dir == '+') {
-            char tmp, tmp2, tmp3;
-            tmp = Cube[3].at(2);
-            tmp2 = Cube[3].at(5);
-            tmp3 = Cube[3].at(8);
-
-            Cube[3].at(2) = Cube[2].at(2);
-            Cube[3].at(5) = Cube[2].at(5);
-            Cube[3].at(8) = Cube[2].at(8);
-
-            Cube[2].at(2) = Cube[4].at(6);
-            Cube[2].at(5) = Cube[4].at(3);
-            Cube[2].at(8) = Cube[4].at(0);
-
-            Cube[4].at(6) = Cube[1].at(2);
-            Cube[4].at(3) = Cube[1].at(5);
-            Cube[4].at(0) = Cube[1].at(8);
-
-            Cube[1].at(2) = tmp;
-            Cube[1].at(5) = tmp2;
-            Cube[1].at(8) = tmp3;
-        }
-        else {
-            char tmp, tmp2, tmp3;
-            tmp = Cube[3].at(2);
-            tmp2 = Cube[3].at(5);
-            tmp3 = Cube[3].at(8);
-
-            Cube[3].at(2) = Cube[1].at(2);
-            Cube[3].at(5) = Cube[1].at(5);
-            Cube[3].at(8) = Cube[1].at(8);
-
-            Cube[1].at(2) = Cube[4].at(6);
-            Cube[1].at(5) = Cube[4].at(3);
-            Cube[1].at(8) = Cube[4].at(0);
-
-            Cube[4].at(6) = Cube[2].at(2);
-            Cube[4].at(3) = Cube[2].at(5);
-            Cube[4].at(0) = Cube[2].at(8);
-
-            Cube[2].at(2) = tmp;
-            Cube[2].at(5) = tmp2;
-            Cube[2].at(8) = tmp3;
-        }
-    }
-    reSetting(where, dir);
+void printU() {
+  for(int i = 0; i < Answer.size(); ++i) {
+    cout << Answer[i];
+    if(i % 3 == 2) cout << endl;
+  }
 }
 
 void solution() {
-    for(int i = 0; i < V.size(); ++i) {
-        char where = V[i].first;
-        char dir = V[i].second;
-        rotateCube(where, dir);
+  for(int i = 0; i < N; ++i) {
+    init();
+    cin >> M;
+    for(int j = 0; j < M; ++j) {
+      cin >> Side >> Dir;
+      rotateCube();
     }
+    for(int j = 0; j < 9; ++j)
+      Answer.push_back(Cube.U[j]);
+  }
+  printU();
 }
 
 void solve() {
-	int tc;
-	cin >> tc;
-	for(int T = 1; T <= tc; ++T) {
-        init();
-        input();
-        solution();
-
-        int cnt = 1;
-        for(int i = 0; i < 9; ++i) {
-            cout << Cube[1].at(i);
-            if(cnt == 3) {
-                cout << endl;
-                cnt = 0;
-            }
-            cnt++;
-        }
-	}
+  input();
+  solution();
 }
 
 int main() {
-    solve();
-	return 0;
+  solve();
+  return 0;
 }
