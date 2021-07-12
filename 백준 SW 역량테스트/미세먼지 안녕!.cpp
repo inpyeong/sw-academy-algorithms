@@ -1,108 +1,149 @@
 #include <iostream>
+#include <cstring>
 
 using namespace std;
 
-const int MAX = 50;
+const int MAX = 50, D[4][2] = {{-1,0},{1,0},{0,-1},{0,1}};
 
-int r, c, t, answer;
-int m[MAX][MAX];
-int cm[MAX][MAX];
-pair<int, int> cleaner[2];
-
-int dy[] = {-1,1,0,0};
-int dx[] = {0,0,-1,1};
+int R, C, T;
+int Board[MAX][MAX];
+int _Board[MAX][MAX];
+pair<int, int> Cleaner[2];
 
 void input() {
-	cin >> r >> c >> t;
-	int idx = 0;
-	for(int i = 0; i < r; ++i)
-		for(int j = 0; j < c; ++j) {
-			cin >> m[i][j];
-			if(m[i][j] == -1) {
-				cleaner[idx].first = i;
-				cleaner[idx++].second = j;
-			}
-		}
+  cin >> R >> C >> T;
+  int idx = 0;
+  for(int i = 0; i < R; ++i)
+    for(int j = 0; j < C; ++j) {
+      cin >> Board[i][j];
+      if(Board[i][j] == -1) {
+        Cleaner[idx].first = i;
+        Cleaner[idx++].second = j;
+      }
+    }
 }
 
-void copyMap(int a[][MAX], int b[][MAX]) {
-	for(int i = 0; i < r; ++i)
-		for(int j = 0; j < c; ++j)
-			a[i][j] = b[i][j];
+void printBoard() {
+  cout << "=============" << endl;
+  for(int i = 0; i < R; ++i) {
+    for(int j = 0; j < C; ++j)
+      cout << Board[i][j] << " ";
+    cout << endl;
+  }
 }
 
 void spreadDust() {
-	copyMap(cm, m);
-	for(int i = 0; i < r; ++i) 
-		for(int j = 0; j < c; ++j) {
-			int cnt = 0;
-			int value = m[i][j] / 5;
-			if(m[i][j] != 0 && m[i][j] != -1) {
-				for(int k = 0; k < 4; ++k) {
-					int ny = i + dy[k];
-					int nx = j + dx[k];
-					if(ny >= 0 && ny < r && nx >= 0 && nx < c) 
-						if(m[ny][nx] != -1) {
-							cm[ny][nx] += value;
-							cnt++;
-						}
-				}
-			}
-			cm[i][j] -= (cnt * value);
-		}
-	copyMap(m, cm);
+  memset(_Board, 0, sizeof(_Board));
+  for(int i = 0; i < R; ++i)
+    for(int j = 0; j < C; ++j) {
+      if(Board[i][j] == -1 || Board[i][j] == 0) continue;
+
+      int tmp = Board[i][j] / 5, cnt = 0;
+      for(int k = 0; k < 4; ++k) {
+        int ny = i + D[k][0];
+        int nx = j + D[k][1];
+        if(ny >= 0 && nx >= 0 && ny < R && nx < C) {
+          if(Board[ny][nx] == -1) continue;
+          _Board[ny][nx] += tmp;
+          cnt++;
+        }
+      }
+      Board[i][j] -= tmp * cnt;
+    }
+
+  for(int i = 0; i < R; ++i)
+    for(int j = 0; j < C; ++j) 
+      Board[i][j] += _Board[i][j];
 }
 
-void clean() {
-	for(int idx = 0; idx < 2; ++idx) {
-		if(idx == 0) {
-			for(int i = cleaner[idx].first - 1; i > 0; --i) 
-				m[i][0] = m[i-1][0];
-			for(int i = 0; i < c-1; ++i)
-				m[0][i] = m[0][i+1];
-			for(int i = 1; i <= cleaner[idx].first; ++i)
-				m[i-1][c-1] = m[i][c-1];
-			for(int i = c-1; i > 1; --i)
-				m[cleaner[idx].first][i] = m[cleaner[idx].first][i-1];
-			m[cleaner[idx].first][1] = 0;
-		}
-		else {
-			for(int i = cleaner[idx].first+1; i < r-1; ++i)
-				m[i][0] = m[i+1][0];
-			for(int i = 0; i < c-1; ++i)
-				m[r-1][i] = m[r-1][i+1];
-			for(int i = r-1; i > cleaner[idx].first; --i)
-				m[i][c-1] = m[i-1][c-1];
-			for(int i = c-1; i > 1; --i)
-				m[cleaner[idx].first][i] = m[cleaner[idx].first][i-1];
-			m[cleaner[idx].first][1] = 0;
-		}
-	}
+void Upper() {
+  int y = Cleaner[0].first-2;
+  int x = Cleaner[0].second;
+
+  while(y >= 0) {
+    Board[y+1][x] = Board[y][x];
+    y--;
+  }
+  y++;
+
+  x++;
+  while(x < C) {
+    Board[y][x-1] = Board[y][x];
+    x++;
+  }
+  x--;
+
+  y++;
+  while(y <= Cleaner[0].first) {
+    Board[y-1][x] = Board[y][x];
+    y++;
+  }
+  y--;
+
+  x--;
+  while(x >= 1) {
+    Board[y][x+1] = Board[y][x];
+    x--;
+  }
+
+  Board[y][Cleaner[0].second+1] = 0;
 }
 
-int getDust() {
-	int ret = 0;
-	for(int i = 0; i < r; ++i)
-		for(int j = 0; j < c; ++j)
-			if(m[i][j] != -1)
-				ret += m[i][j];
-	return ret;
+void Lower() {
+  int y = Cleaner[1].first+2;
+  int x = Cleaner[1].second;
+
+  while(y < R) {
+    Board[y-1][x] = Board[y][x];
+    y++;
+  }
+  y--;
+
+  x++;
+  while(x < C) {
+    Board[y][x-1] = Board[y][x];
+    x++;
+  }
+  x--;
+
+  y--;
+  while(y >= Cleaner[1].first) {
+    Board[y+1][x] = Board[y][x];
+    y--;
+  }
+  y++;
+
+  x--;
+  while(x >= 1) {
+    Board[y][x+1] = Board[y][x];
+    x--;
+  }
+
+  Board[y][Cleaner[1].second+1] = 0;
 }
 
 void solution() {
-	for(int i = 0; i < t; ++i) {
-		spreadDust();
-		clean();
-	}
-	cout << getDust() << endl;
+  while(T--) {
+    spreadDust();
+    Upper();
+    Lower();
+  }
+  // printBoard();
+  int answer = 0;
+  for(int i = 0; i < R; ++i)
+    for(int j = 0; j < C; ++j) {
+      if(Board[i][j] == -1) continue;
+      answer += Board[i][j];
+    }
+  cout << answer << endl;
 }
 
 void solve() {
-	input();
-	solution();
+  input();
+  solution();
 }
 
 int main() {
-	solve();
-	return 0;
+  solve();
+  return 0;
 }
