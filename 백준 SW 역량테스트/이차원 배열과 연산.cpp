@@ -1,106 +1,134 @@
 #include <iostream>
 #include <vector>
-#include <cstring>
 #include <algorithm>
 
 using namespace std;
 
-const int MAX = 1 + 100;
+const int MAX = 101;
 
-int r, c, k, answer;
-int A[MAX][MAX]; 
-int numCnt[MAX];
+int R, C, K;
+int A[MAX][MAX];
+int ARow, ACol;
 
 void input() {
-	cin >> r >> c >> k;
-	for(int i = 1; i <= 3; ++i)
-		for(int j = 1; j <= 3; ++j)
-			cin >> A[i][j];
+  cin >> R >> C >> K;
+  for(int i = 1; i <= 3; ++i)
+    for(int j = 1; j <= 3; ++j)
+      cin >> A[i][j];
+  ARow = 3, ACol = 3;
 }
 
-void find() {
-	int time = 0;
-	int ar = 3, ac = 3;
-	while(true) {
-		if(A[r][c] == k) {
-			answer = time;
-			break;
-		}
-		if(time > 100) {
-			answer = -1;
-			break;
-		}
-		vector<int> sizes;
-		// R
-		if(ar >= ac) {
-			for(int i = 1; i <= ar; ++i) {
-				vector<pair<int, int> > v;
-				memset(numCnt, 0, sizeof(numCnt));
-				for(int j = 1; j <= ac; ++j) 
-					numCnt[A[i][j]]++;
-				for(int j = 1; j < MAX; ++j) {
-					if(numCnt[j] == 0) continue;
-					v.push_back(make_pair(numCnt[j], j));
-				}
-				sort(v.begin(), v.end());
-				for(int j = 1; j <= ac; ++j)
-					A[i][j] = 0;
-				int idx = 1;
-				for(int j = 0; j < v.size(); ++j) {
-					A[i][idx++] = v[j].second;
-					A[i][idx++] = v[j].first;
-				}
-				idx--;
-				sizes.push_back(idx);
-			}
-			sort(sizes.begin(), sizes.end());
-			ac = sizes.back();
-		}
-		// C
-		else {
-			for(int i = 1; i <= ac; ++i) {
-				vector<pair<int, int> > v;
-				memset(numCnt, 0, sizeof(numCnt));
-				for(int j = 1; j <= ar; ++j) 
-					numCnt[A[j][i]]++;
-				for(int j = 1; j < MAX; ++j) {
-					if(numCnt[j] == 0) continue;
-					v.push_back(make_pair(numCnt[j], j));
-				}
-				sort(v.begin(), v.end());
-				for(int j = 1; j <= ar; ++j)
-					A[j][i] = 0;
-				int idx = 1;
-				for(int j = 0; j < v.size(); ++j) {
-					A[idx++][i] = v[j].second;
-					A[idx++][i] = v[j].first;
-				}
-				idx--;
-				sizes.push_back(idx);
-			}
-			sort(sizes.begin(), sizes.end());
-			ar = sizes.back();
-		}
-		time++;
-	}
+void printA() {
+  cout << "============" << endl;
+  for(int i = 1; i <= ARow; ++i) {
+    for(int j = 1; j <= ACol; ++j)
+      cout << A[i][j] << " ";
+    cout << endl;
+  }
+}
+
+bool cmp(pair<int, int>& a,pair<int, int>& b) {
+  if(a.second == b.second)
+    return a.first < b.first;
+  return a.second < b.second;
+}
+
+void ROperation() {
+  int nextACol = 0;
+  for(int i = 1; i <= ARow; ++i) {
+    vector<int> num;
+    for(int j = 1; j <= ACol; ++j) {
+      num.push_back(A[i][j]);
+      A[i][j] = 0;
+    }
+    sort(num.begin(), num.end());
+
+    vector<pair<int, int> > numWithCnt;
+    int cnt = 1;
+    for(int j = 0; j < ACol-1; ++j) {
+      if(num[j] == num[j+1]) cnt++;
+      else {
+        numWithCnt.push_back(make_pair(num[j], cnt));
+        cnt = 1;
+      }
+    }
+    numWithCnt.push_back(make_pair(num[ACol-1], cnt));
+
+    sort(numWithCnt.begin(), numWithCnt.end(), cmp);
+    int idx = 1;
+    for(int j = 0; j < numWithCnt.size(); ++j) {
+      if(numWithCnt[j].first == 0) continue;
+      A[i][idx++] = numWithCnt[j].first;
+      if(idx > 100) break;
+      A[i][idx++] = numWithCnt[j].second;
+      if(idx > 100) break;
+    }
+    idx--;
+    nextACol = max(nextACol, idx);
+  }
+  ACol = nextACol;
+}
+
+void COperation() {
+  int nextARow = 0;
+  for(int i = 1; i <= ACol; ++i) {
+    vector<int> num;
+    for(int j = 1; j <= ARow; ++j) {
+      num.push_back(A[j][i]);
+      A[j][i] = 0;
+    }
+    sort(num.begin(), num.end());
+
+    vector<pair<int, int> > numWithCnt;
+    int cnt = 1;
+    for(int j = 0; j < ARow-1; ++j) {
+      if(num[j] == num[j+1]) cnt++;
+      else {
+        numWithCnt.push_back(make_pair(num[j], cnt));
+        cnt = 1;
+      }
+    }
+    numWithCnt.push_back(make_pair(num[ARow-1], cnt));
+
+    sort(numWithCnt.begin(), numWithCnt.end(), cmp);
+    int idx = 1;
+    for(int j = 0; j < numWithCnt.size(); ++j) {
+      if(numWithCnt[j].first == 0) continue;
+      A[idx++][i] = numWithCnt[j].first;
+      if(idx > 100) break;
+      A[idx++][i] = numWithCnt[j].second;
+      if(idx > 100) break;
+    }
+    idx--;
+    nextARow = max(nextARow, idx);
+  }
+  ARow = nextARow;
 }
 
 void solution() {
-	if(A[r][c] == k) {
-		answer = 0;
-		cout << answer << endl;
-		return;
-	}
-	find();
-	cout << answer << endl;
+  int answer = 0;
+  while(true) {
+    if(A[R][C] == K) break;
+
+    if(ARow >= ACol) ROperation();
+    else COperation();
+
+    answer++;
+    if(answer > 100) {
+      answer = -1;
+      break;
+    }
+  }
+  // printA();
+  cout << answer << endl;
 }
 
 void solve() {
-	input();
-	solution();
+  input();
+  solution();
 }
 
 int main() {
-	solve();
-	return 0;
+  solve();
+  return 0;
 }
