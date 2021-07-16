@@ -1,95 +1,98 @@
 #include <iostream>
+#include <utility>
+#include <vector>
 #include <queue>
 #include <cstring>
-#include <vector>
 
 using namespace std;
 
-const int MAX_N = 50, MAX_M = 10, INF = 987654321;
+const int INF = 987654321;
+const int MAX_N = 50, MAX_M = 10, D[4][2] = {{-1,0},{1,0},{0,-1},{0,1}};
 
-int N, M, emptyPlace, answer = INF;
-int m[MAX_N][MAX_N];
-int time[MAX_N][MAX_N];
-bool check[MAX_M];
+int N, M, Answer = INF;
+int Board[MAX_N][MAX_N];
+vector<pair<int, int> > Virus;
+bool Check[MAX_M];
 
-vector<pair<int, int> > virus;
-
-int dy[] = { -1, 1,  0, 0 };
-int dx[] = {  0, 0, -1, 1 };
+queue<pair<int, int> > Q;
+int Dist[MAX_N][MAX_N];
 
 void input() {
-	cin >> N >> M;
-	for(int i = 0; i < N; ++i)
-		for(int j = 0; j < N; ++j) {
-			cin >> m[i][j];
-			if(m[i][j] == 0)
-				emptyPlace++;
-			else if(m[i][j] == 2) 
-				virus.push_back(make_pair(i, j));
-		}
+  cin >> N >> M;
+  for(int i = 0; i < N; ++i)
+    for(int j = 0; j < N; ++j) {
+      cin >> Board[i][j];
+      if(Board[i][j] == 2)
+        Virus.push_back(make_pair(i, j));
+    }
 }
 
-void spreadVirus(queue<pair<int, int> >& q) {
-	int infectPlace = 0;
-	int totalTime = 0;
-	while(!q.empty()) {
-		int y = q.front().first;
-		int x = q.front().second;
-		q.pop();
-		for(int i = 0; i < 4; ++i) {
-			int ny = y + dy[i];
-			int nx = x + dx[i];
-			if(ny >= 0 && ny < N && nx >= 0 && nx < N) {
-				if(m[ny][nx] != 1 && time[ny][nx] == -1) {
-					time[ny][nx] = time[y][x] + 1;
-					if(m[ny][nx] == 0) {
-						infectPlace++;
-						totalTime = time[ny][nx];
-					}
-					q.push(make_pair(ny, nx));
-				}
-			}
-		}
-	}
-	if(infectPlace == emptyPlace)
-		answer = min(answer, totalTime);
+int spreadVirus() {
+  int time = 0;
+  while(!Q.empty()) Q.pop();
+  memset(Dist, -1, sizeof(Dist));
+  
+  for(int i = 0; i < Virus.size(); ++i)
+    if(Check[i]) {
+      Q.push(make_pair(Virus[i].first, Virus[i].second));
+      Dist[Virus[i].first][Virus[i].second] = 0;
+    }
+
+  while(!Q.empty()) {
+    int qSz = Q.size();
+    while(qSz--) {
+      int y = Q.front().first;
+      int x = Q.front().second;
+      Q.pop();
+      if(Board[y][x] == 0)
+        time = max(time, Dist[y][x]);
+
+      for(int i = 0; i < 4; ++i) {
+        int ny = y + D[i][0];
+        int nx = x + D[i][1];
+        if(ny < 0 || nx < 0 || ny >= N || nx >= N) continue;
+        if(Board[ny][nx] == 1) continue;
+        if(Dist[ny][nx] != -1) continue;
+        Q.push(make_pair(ny, nx));
+        Dist[ny][nx] = Dist[y][x] + 1;
+      }
+    }
+  }
+
+  for(int i = 0; i < N; ++i)
+    for(int j = 0; j < N; ++j)
+      if(Board[i][j] == 0 && Dist[i][j] == -1)
+        return INF;
+  return time;
 }
 
-void selectVirus(int idx, int cnt) {
-	if(cnt == M) {
-		queue<pair<int, int> > q;
-		memset(time, -1, sizeof(time));
-		for(int i = 0; i < virus.size(); ++i)
-			if(check[i]) {
-				q.push(make_pair(virus[i].first, virus[i].second));
-				time[virus[i].first][virus[i].second] = 0;
-			}
-		spreadVirus(q);
-		return;
-	}
-	for(int i = idx; i < virus.size(); ++i) {
-		if(!check[i]) {
-			check[i] = true;
-			selectVirus(i, cnt+1);
-			check[i] = false;
-		}
-	}
+void DFS(int idx, int cnt) {
+  if(cnt == M) {
+    Answer = min(Answer, spreadVirus());
+    return;
+  }
+  for(int i = idx; i < Virus.size(); ++i) {
+    if(Check[i]) continue;
+    Check[i] = true;
+    DFS(i, cnt+1);
+    Check[i] = false;
+  }
 }
 
 void solution() {
-	selectVirus(0, 0);
-	if(answer == INF) 
-		cout << -1 << endl;
-	else
-		cout << answer << endl;
+  DFS(0, 0);
+  if(Answer == INF)
+    cout << -1 << endl;
+  else
+    cout << Answer << endl;
 }
 
 void solve() {
-	input();
-	solution();
+  input();
+  solution();
 }
 
 int main() {
-	solve();
-	return 0;
+  solve();
+  return 0;
 }
