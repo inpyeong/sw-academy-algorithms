@@ -5,134 +5,131 @@ using namespace std;
 
 const int MAX_N = 12, MAX_K = 10;
 
-struct Pawn {
-    int y, x;
-    int d;
+struct CHESS {
+  int y, x;
+  int d;
 };
 
-int n, k;
-int m[MAX_N][MAX_N];
-vector<int> ms[MAX_N][MAX_N];
-Pawn pawn[MAX_K];
+int N, K, Answer;
+int Board[MAX_N][MAX_N];
+vector<int> BoardState[MAX_N][MAX_N];
+CHESS Chess[MAX_K];
 
-int dy[] = {0,0,0,-1,1};
-int dx[] = {0,1,-1,0,0};
+int D[5][2] = {{0,0},{0,1},{0,-1},{-1,0},{1,0}};
 
 void input() {
-    cin >> n >> k;
-    for(int i = 0; i < n; ++i)
-        for(int j = 0; j < n; ++j)
-            cin >> m[i][j];
-    for(int i = 0; i < k; ++i) {
-        int y, x, d;
-        cin >> y >> x >> d;
-        y--, x--;
-        pawn[i] = { y, x, d };
-        ms[y][x].push_back(i);
-    }
+  cin >> N >> K;
+  for(int i = 0; i < N; ++i)
+    for(int j = 0; j < N; ++j)
+      cin >> Board[i][j];
+  for(int i = 0; i < K; ++i) {
+    cin >> Chess[i].y >> Chess[i].x >> Chess[i].d;
+    Chess[i].y--;
+    Chess[i].x--;
+    BoardState[Chess[i].y][Chess[i].x].push_back(i);
+  }
+}
+
+bool checkBoardState() {
+  for(int i = 0; i < K; ++i) {
+    int y = Chess[i].y;
+    int x = Chess[i].x;
+    if(BoardState[y][x].size() >= 4) return true;
+  }
+  return false;
 }
 
 int findPos(int y, int x, int idx) {
-    for(int i = 0; i < ms[y][x].size(); ++i)
-        if(ms[y][x][i] == idx)
-            return i;
+  for(int i = 0; i < BoardState[y][x].size(); ++i)
+    if(BoardState[y][x][i] == idx) return i;
 }
 
-int getDelNum(int y, int x, int pawnNum) {
-    int ret = 0;
-    for(int i = ms[y][x].size()-1; i >= 0; --i) {
-        if(ms[y][x][i] == pawnNum) break;
-        ret++;
-    }
-    return ret+1;
+int findDeleteNum(int y, int x, int chessNum) {
+  int cnt = 0;
+  for(int i = BoardState[y][x].size()-1; i >= 0; --i) {
+    if(BoardState[y][x][i] == chessNum) break;
+    cnt++;
+  }
+  return cnt+1;
 }
 
-int getReverseDir(int idx) {
-    int d = pawn[idx].d;
-    if(d == 1) return 2;
-    else if(d == 2) return 1;
-    else if(d == 3) return 4;
-    else if(d == 4) return 3;
+int getOppositeDir(int num) {
+  int d = Chess[num].d;
+  if(d == 1) return 2;
+  else if(d == 2) return 1;
+  else if(d == 3) return 4;
+  else if(d == 4) return 3;
 }
 
-void movePawn(int y, int x, int ny, int nx, int pawnNum, int pos, int state) {
-    if(state == 0) {
-        for(int i = pos; i < ms[y][x].size(); ++i) {
-            ms[ny][nx].push_back(ms[y][x][i]);
-            int idx = ms[y][x][i];
-            pawn[idx].y = ny;
-            pawn[idx].x = nx;
-        }
-        int delNum = getDelNum(y, x, pawnNum);
-        for(int i = 0; i < delNum; ++i)
-            ms[y][x].pop_back();
+void moveChess(int y, int x, int ny, int nx, int chessNum, int pos, int bs) {
+  if(bs == 0) {
+    for(int i = pos; i < BoardState[y][x].size(); ++i) {
+      BoardState[ny][nx].push_back(BoardState[y][x][i]);
+      int idx = BoardState[y][x][i];
+      Chess[idx].y = ny;
+      Chess[idx].x = nx;
     }
-    else if(state == 1) {
-        for(int i = ms[y][x].size()-1; i >= pos; --i) {
-            ms[ny][nx].push_back(ms[y][x][i]);
-            int idx = ms[y][x][i];
-            pawn[idx].y = ny;
-            pawn[idx].x = nx;
-        }
-        int delNum = getDelNum(y, x, pawnNum);
-        for(int i = 0; i < delNum; ++i)
-            ms[y][x].pop_back();
+    int deleteNum = findDeleteNum(y, x, chessNum);
+    for(int i = 0; i < deleteNum; ++i) BoardState[y][x].pop_back();
+  }
+  else if(bs == 1) {
+    for(int i = BoardState[y][x].size()-1; i >= pos; --i) {
+      BoardState[ny][nx].push_back(BoardState[y][x][i]);
+      int idx = BoardState[y][x][i];
+      Chess[idx].y = ny;
+      Chess[idx].x = nx;
     }
-    else if(state == 2) {
-        int nd = getReverseDir(pawnNum);
-        pawn[pawnNum].d = nd;
-        int nny = y + dy[nd];
-        int nnx = x + dx[nd];
-        if(nny >= 0 && nny < n && nnx >= 0 && nnx < n)
-            if(m[nny][nnx] != 2) movePawn(y, x, nny, nnx, pawnNum, pos, m[nny][nnx]);
-    }
-}
+    int deleteNum = findDeleteNum(y, x, chessNum);
+    for(int i = 0; i < deleteNum; ++i) BoardState[y][x].pop_back();
+  }
+  else if(bs == 2) {
+    int nd = getOppositeDir(chessNum);
+    Chess[chessNum].d = nd;
+    int nny = y + D[nd][0];
+    int nnx = x + D[nd][1];
 
-bool isOver() {
-    for(int i = 0; i < k; ++i) {
-        int y = pawn[i].y;
-        int x = pawn[i].x;
-        if(ms[y][x].size() >= 4)
-            return true;
-    }
-    return false;
+    if(nny >= 0 && nnx >= 0 && nny < N && nnx < N) 
+      if(Board[nny][nnx] != 2) moveChess(y, x, nny, nnx, chessNum, pos, Board[nny][nnx]);
+  }
 }
 
 void solution() {
-    bool check = false;
-    int turn = 0;
-    while(true) {
-        if(turn > 1000) break;
-        for(int i = 0; i < k; ++i) {
-            int d = pawn[i].d;
-            int y = pawn[i].y, x = pawn[i].x;
-            int ny = y + dy[d], nx = x + dx[d];
-            int pos = findPos(y, x, i);
-            if(ny >= 0 && ny < n && nx >= 0 && nx < n)
-                movePawn(y, x, ny, nx, i, pos, m[ny][nx]);
-            else
-                movePawn(y, x, ny, nx, i, pos, 2);
-            if(isOver()) {
-                check = true;
-                break;
-            }
-        }
-        if(check) 
-            break;
-        turn++;
+  bool flag = false;
+  int time = 0;
+  while(true) {
+    if(time > 1000) break;
+    for(int i = 0; i < K; ++i) {
+      int y = Chess[i].y;
+      int x = Chess[i].x;
+      int d = Chess[i].d;
+
+      int ny = y + D[d][0];
+      int nx = x + D[d][1];
+
+      int pos = findPos(y, x, i);
+      if(ny >= 0 && nx >= 0 && ny < N && nx < N) 
+        moveChess(y, x, ny, nx, i, pos, Board[ny][nx]);
+      else 
+        moveChess(y, x, ny, nx, i, pos, 2);
+
+      if(checkBoardState()) {
+        flag = true;
+        break;
+      }
     }
-    if(check)
-        cout << turn + 1 << endl;
-    else
-        cout << -1 << endl;
+    if(flag) break;
+    time++;
+  }
+  if(flag) cout << time + 1 << endl;
+  else cout << -1 << endl;
 }
 
 void solve() {
-    input();
-    solution();
+  input();
+  solution();
 }
 
 int main() {
-    solve();
-    return 0;
+  solve();
+  return 0;
 }
