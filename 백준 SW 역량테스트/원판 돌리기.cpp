@@ -1,156 +1,157 @@
 #include <iostream>
-#include <vector>
-#include <cstring>
 
 using namespace std;
 
-const int MAX_N = 51, MAX_M = 51;
+const int MAX = 51, INF = 987654321;
 
-int n, m, t;
-vector<int> circles[MAX_N];
-bool check[MAX_N][MAX_M];
-bool wasDelete;
+int N, M, T, Answer;
+int Circles[MAX][MAX];
+int _Circles[MAX][MAX];
+int XDK[MAX][3];
+int Tmp[MAX];
+bool Deleted;
 
 void input() {
-	cin >> n >> m >> t;
-	for(int i = 1; i <= n; ++i) 
-		for(int j = 0; j < m; ++j) {
-			int num;
-			cin >> num;
-			circles[i].push_back(num);
-		}
-}
-
-void rotateCircle(int idx, int d, int k) {
-	vector<int> tmp;
-	// cw
-	if(d == 0) {
-		for(int i = m-k; i < m; ++i) 
-			tmp.push_back(circles[idx][i]);
-		for(int i = 0; i < m-k; ++i)
-			tmp.push_back(circles[idx][i]);
-		circles[idx] = tmp;
-	}
-	// ccw
-	else if(d == 1) {
-		for(int i = k; i < m; ++i) 
-			tmp.push_back(circles[idx][i]);
-		for(int i = 0; i < k; ++i)
-			tmp.push_back(circles[idx][i]);
-		circles[idx] = tmp;
-	}
+  cin >> N >> M >> T;
+  for(int i = 1; i <= N; ++i) 
+    for(int j = 1; j <= M; ++j) 
+      cin >> Circles[i][j];
+  for(int i = 0; i < T; ++i)
+    cin >> XDK[i][0] >> XDK[i][1] >> XDK[i][2];
 }
 
 void printCircles() {
-	cout << "===================" << endl;
-	for(int i = 1; i <= n; ++i) {
-		for(int j = 0; j < m; ++j)
-			cout << circles[i][j] << " ";
-		cout << endl;
-	}
-	cout << "===================" << endl;
+  cout << "=======" << endl;
+  for(int i = 1; i <= N; ++i) {
+    cout << i << ": ";
+    for(int j = 1; j <= M; ++j)
+      cout << Circles[i][j] << " ";
+    cout << endl;
+  }
+  cout << "=======" << endl;
 }
 
-void deleteNum() {
-	memset(check, false, sizeof(check));
-	wasDelete = false;
-	for(int i = 1; i <= n; ++i) 
-		for(int j = 0; j < m; ++j) {
-			bool del = false;
-			int here = circles[i][j];
-			if(here == 0) continue;
-			// up
-			int upPos = i+1;	
-			if(upPos <= n && here == circles[upPos][j]) {
-				check[upPos][j] = true;
-				if(!del) 
-					del = true;
-			}
-			// down
-			int downPos = i-1;	
-			if(downPos > 0 && here == circles[downPos][j]) {
-				check[downPos][j] = true;
-				if(!del) 
-					del = true;
-			}
-			// left			
-			int leftPos;
-			if(j == 0) leftPos = m-1;
-			else leftPos = j-1;
-			if(here == circles[i][leftPos]) {
-				check[i][leftPos] = true;
-				if(!del) 
-					del = true;
-			}
-			// right
-			int rightPos;
-			if(j == m-1) rightPos = 0;
-			else rightPos = j+1;
-			if(here == circles[i][rightPos]) {
-				check[i][rightPos] = true;
-				if(!del) 
-					del = true;
-			}
-			if(del) 
-				check[i][j] = true;
-		}
-	for(int i = 1; i <= n; ++i)
-		for(int j = 0; j < m; ++j) 
-			if(check[i][j]) {
-				circles[i][j] = 0;
-				if(!wasDelete)
-					wasDelete = true;
-			}
+void rotateCircle(int d, int k, int idx) {
+  for(int i = 1; i <= M; ++i)
+    Tmp[i] = Circles[idx][i];
+  int cnt = 1;
+  // clockwise
+  if(d == 0) {
+    for(int i = M-k+1; i <= M; ++i)
+      Circles[idx][cnt++] = Tmp[i];
+    for(int i = 1; i < M-k+1; ++i)
+      Circles[idx][cnt++] = Tmp[i];
+  }
+  // anticlockwise
+  else if(d == 1) {
+    for(int i = k+1; i <= M; ++i)
+      Circles[idx][cnt++] = Tmp[i];
+    for(int i = 1; i < k+1; ++i)
+      Circles[idx][cnt++] = Tmp[i];
+  }
 }
 
-void calc() {
-	int cnt = 0, sum = 0;
-	for(int i = 1; i <= n; ++i)
-		for(int j = 0; j < m; ++j)
-			if(circles[i][j] > 0) {
-				cnt++;
-				sum += circles[i][j];
-			}
-	double avg = (double)(sum) / (double)(cnt);
-	for(int i = 1; i <= n; ++i)
-		for(int j = 0; j < m; ++j) {
-			if(circles[i][j] == 0)
-				continue;
-			if((double)(circles[i][j]) > avg)
-				circles[i][j]--;
-			else if((double)(circles[i][j]) < avg)
-				circles[i][j]++;
-		}
+void deleteNumber(int a, int b, int c, int d) {
+  Deleted = true;
+  Circles[a][b] = -INF;
+  Circles[c][d] = -INF;
 }
 
-int getSum() {
-	int ret = 0;
-	for(int i = 1; i <= n; ++i)
-		for(int j = 0; j < m; ++j)
-			ret += circles[i][j];
-	return ret;
+void checkCircles() {
+  double sum = 0;
+  int cnt = 0;
+  for(int i = 1; i <= N; ++i)
+    for(int j = 1; j <= M; ++j) {
+      _Circles[i][j] = Circles[i][j];
+      if(Circles[i][j] != -INF) {
+        sum += Circles[i][j];
+        cnt++;
+      }
+    }
+  Deleted = false;
+
+  for(int i = 1; i <= N; ++i) {
+    for(int j = 1; j <= M; ++j) {
+      if(_Circles[i][j] == -INF) continue;
+      // vertical
+      if(i == 1) {
+        if(_Circles[1][j] == _Circles[2][j])
+          deleteNumber(1, j, 2, j);
+      }
+      else if(i == N) {
+        if(_Circles[N][j] == _Circles[N-1][j])
+          deleteNumber(N, j, N-1, j);
+      }
+      else {
+        if(_Circles[i][j] == _Circles[i-1][j])
+          deleteNumber(i, j, i-1, j);
+        if(_Circles[i][j] == _Circles[i+1][j])
+          deleteNumber(i, j, i+1, j);
+      }
+      // horizontal
+      if(j == 1) {
+        if(_Circles[i][1] == _Circles[i][2])
+          deleteNumber(i, 1, i, 2);
+        if(_Circles[i][1] == _Circles[i][M])
+          deleteNumber(i, 1, i, M);
+      }
+      else if(j == M) {
+        if(_Circles[i][M] == _Circles[i][1])
+          deleteNumber(i, M, i, 1);
+        if(_Circles[i][M] == _Circles[i][M-1])
+          deleteNumber(i, M, i, M-1);
+      }
+      else {
+        if(_Circles[i][j] == _Circles[i][j+1])
+          deleteNumber(i, j, i, j+1);
+        if(_Circles[i][j] == _Circles[i][j-1])
+          deleteNumber(i, j, i, j-1);
+      }
+    }
+  }
+  if(!Deleted) {
+    double avg = sum / (double)cnt;
+    for(int i = 1; i <= N; ++i)
+      for(int j = 1; j <= M; ++j) {
+        if(Circles[i][j] == -INF) continue;
+        if(Circles[i][j] > avg)
+          Circles[i][j]--;
+        else if(Circles[i][j] < avg)
+          Circles[i][j]++;
+      }
+  }
+}
+
+void getAnswer() {
+  for(int i = 1; i <= N; ++i)
+    for(int j = 1; j <= M; ++j) {
+      if(Circles[i][j] == -INF) continue;
+      Answer += Circles[i][j];
+    }
 }
 
 void solution() {
-	for(int i = 0; i < t; ++i) {
-		int x, d, k;
-		cin >> x >> d >> k;
-		for(int j = 1; j <= n; ++j) 
-			if(j % x == 0) 
-				rotateCircle(j, d, k);
-		deleteNum(); 
-		if(!wasDelete)
-			calc();
-	}
-	cout << getSum() << endl;
+  for(int i = 0; i < T; ++i) {
+    int x = XDK[i][0];
+    int d = XDK[i][1];
+    int k = XDK[i][2];
+
+    for(int j = x; j <= N; j += x) 
+      rotateCircle(d, k, j);
+    // printCircles();
+
+    checkCircles();
+  }
+  getAnswer();
+  cout << Answer << endl;
 }
 
 void solve() {
-	input();
-	solution();
+  input();
+  solution();
 }
 
 int main() {
-	solve();
-	return 0;
+  solve();
+  return 0;
 }
