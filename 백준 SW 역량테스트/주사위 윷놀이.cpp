@@ -2,7 +2,7 @@
 
 using namespace std;
 
-const int board[33][6] = {
+const int Board[33][6] = {
 		{0, 1, 2, 3, 4, 5},
 		{2, 2, 3, 4, 5, 6},
 		{4, 3, 4, 5, 6, 7},
@@ -38,43 +38,44 @@ const int board[33][6] = {
 		{0, 32, 32, 32, 32, 32}
 };
 
-int answer;
-int in[10];
+int Answer;
+int In[10];
 
 void input() {
-	for(int i = 0; i < 10; ++i)
-		cin >> in[i];
+    for(int i = 0; i < 10; ++i)
+        cin >> In[i];
 }
 
 int getScore(int state) {
-	int ret = 0;
-	bool visited[33] = { false, };
-	int pos[4] = { 0, };
-	for(int turn = 0; turn < 10; ++turn) {
-		int move = in[turn];
-		int horse = (state >> (turn * 2)) & 0x03;
-		int& currPos = pos[horse];
-		int nextPos = board[currPos][move];
-		int addScore = board[nextPos][0];
+    int ret = 0;
+    bool visited[33] = { false, };
+    int pos[4] = { 0, };
+    for(int turn = 0; turn < 10; ++turn) {
+        int move = In[turn];
+        int horse = (state >> (turn * 2)) & 0x03;
 
-		if(visited[nextPos] && nextPos != 32) 
-			return -1;
+        int& currPos = pos[horse];
+        int nextPos = Board[currPos][move];
+        int addScore = Board[nextPos][0];
 
-		ret += addScore;
-		visited[currPos] = false;
-		visited[nextPos] = true;
-		currPos = nextPos;
-	}
-	return ret;
+        if(visited[nextPos] && nextPos != 32)
+            return -1;
+        
+        ret += addScore;
+        visited[currPos] = false;
+        visited[nextPos] = true;
+        currPos = nextPos;
+    }
+    return ret;
 }
 
 void solution() {
-	for(int state = 0; state < (1 << 20); ++state) {
-		int candi = getScore(state);
-		if(answer < candi)
-			answer = candi;
-	}
-	cout << answer << endl;
+    for(int state = 0; state < (1 << 20); ++state) {
+        int candi = getScore(state);
+        if(Answer < candi)
+            Answer = candi;
+    }
+    cout << Answer << endl;
 }
 
 void solve() {
